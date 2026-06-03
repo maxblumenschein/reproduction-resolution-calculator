@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Reproduction Resolution Calculator</title>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+            :root {
+                --color-main: crimson;
+                --color-highlight: royalblue;
+                --color-select: darkgreen;
+                --color-marked: #fffd6e;
+                --color-text-main: black;
+                --color-text-highlight: darkslategray;
+                --color-canvas: #fefefe;
+            }
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: "IBM Plex Sans", Helvetica, sans-serif;
+                background: var(--color-canvas);
+                color: var(--color-text-main);
+                font-size: 16px;
+                line-height: 1.5;
+                padding: 2em 2em 4em;
+            }
+            h1 {
+                font-size: 1.8em;
+                font-weight: 700;
+                line-height: 1.2;
+                border-left: 12px solid var(--color-main);
+                margin-left: -2rem;
+                padding-left: calc(2rem - 12px);
+                margin-bottom: 0.2em;
+            }
+            .subtitle {
+                font-size: 0.85em;
+                color: var(--color-text-highlight);
+                margin-bottom: 2em;
+                padding-left: 2px;
+            }
+            .layout {
+                display: grid;
+                grid-template-columns: 290px 1fr;
+                gap: 2em;
+                max-width: 960px;
+            }
+            @media (max-width: 700px) {
+                .layout {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* Cards */
+            .card {
+                margin-bottom: 0;
+            }
+            .card-title {
+                font-size: 0.7em;
+                font-weight: 600;
+                letter-spacing: 0.1em;
+                background: var(--color-main);
+                color: white;
+                padding: 3px 8px;
+                margin: 0 0 1em 0;
+            }
+            .card-title-secondary {
+                font-size: 0.7em;
+                font-weight: 600;
+                letter-spacing: 0.1em;
+                border-top: 3px solid var(--color-main);
+                border-bottom: 3px solid var(--color-main);
+                padding: 3px 0;
+                margin: 1.5em 0 0.75em 0;
+                color: var(--color-text-main);
+            }
+
+            /* Fields */
+            .field {
+                margin-bottom: 0.85em;
+            }
+            .field label {
+                display: block;
+                font-size: 0.8em;
+                color: var(--color-text-highlight);
+                margin-bottom: 0.2em;
+            }
+            .field-row {
+                display: flex;
+                gap: 5px;
+                align-items: center;
+            }
+            input[type="number"] {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 0.9em;
+                border: 1px solid black;
+                background: white;
+                color: black;
+                padding: 4px 6px;
+                width: 85px;
+                outline: none;
+                transition: background 0.1s;
+                -moz-appearance: textfield;
+            }
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+                opacity: 0.4;
+            }
+            input[type="number"]:focus {
+                background: var(--color-marked);
+                border-color: black;
+            }
+            input[type="number"].narrow {
+                width: 85px;
+                flex-shrink: 0;
+            }
+            .unit {
+                font-size: 0.8em;
+                color: var(--color-text-highlight);
+                white-space: nowrap;
+                min-width: 24px;
+            }
+            .sep {
+                color: #aaa;
+                padding: 0 1px;
+                font-size: 0.9em;
+            }
+
+            /* Presets */
+            .presets {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                margin-bottom: 1em;
+            }
+            .preset-btn {
+                font-family: "IBM Plex Sans", sans-serif;
+                font-size: 0.75em;
+                border: 1px solid black;
+                background: white;
+                color: black;
+                cursor: pointer;
+                padding: 2px 8px;
+                transition:
+                    background 0.1s,
+                    color 0.1s;
+            }
+            .preset-btn:hover {
+                background: var(--color-main);
+                color: white;
+                border-color: var(--color-main);
+            }
+
+            /* Mode tabs */
+            .mode-tabs {
+                display: flex;
+                margin-bottom: 1em;
+                border: 1px solid black;
+            }
+            .mode-tab {
+                flex: 1;
+                border: none;
+                border-right: 1px solid black;
+                background: white;
+                color: var(--color-text-highlight);
+                font-family: "IBM Plex Sans", sans-serif;
+                font-size: 0.8em;
+                padding: 7px 4px;
+                cursor: pointer;
+                text-align: center;
+                line-height: 1.3;
+                transition:
+                    background 0.1s,
+                    color 0.1s;
+            }
+            .mode-tab:last-child {
+                border-right: none;
+            }
+            .mode-tab.active {
+                background: var(--color-main);
+                color: white;
+                font-weight: 600;
+            }
+            .mode-tab:hover:not(.active) {
+                background: var(--color-marked);
+                color: black;
+            }
+
+            /* Mode inputs */
+            .mode-inputs {
+                margin-bottom: 1em;
+            }
+
+            /* Results grid */
+            .results-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                border: 1px solid black;
+                margin-bottom: 0.75em;
+            }
+            .result-block {
+                padding: 0.7em 0.85em;
+                border-right: 1px solid black;
+                border-bottom: 1px solid black;
+            }
+            .result-block:nth-child(2n) {
+                border-right: none;
+            }
+            .result-block:nth-last-child(-n + 2) {
+                border-bottom: none;
+            }
+            .result-label {
+                font-size: 0.65em;
+                text-transform: uppercase;
+                letter-spacing: 0.09em;
+                color: var(--color-text-highlight);
+                margin-bottom: 0.2em;
+            }
+            .result-value {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 1.7em;
+                font-weight: 700;
+                color: var(--color-main);
+                line-height: 1;
+            }
+            .result-value.blue {
+                color: var(--color-highlight);
+            }
+            .result-value.green {
+                color: var(--color-select);
+            }
+            .result-value.small {
+                font-size: 1.15em;
+            }
+            .result-unit {
+                font-size: 0.72em;
+                color: var(--color-text-highlight);
+                margin-top: 0.15em;
+            }
+            .result-sub {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 0.72em;
+                color: var(--color-text-highlight);
+                margin-top: 0.4em;
+                padding-top: 0.4em;
+                border-top: 1px solid #ccc;
+            }
+
+            /* Info table */
+            .info-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.82em;
+                border-bottom: 1px solid black;
+                border-right: 1px solid black;
+                margin-top: 0.25em;
+            }
+            .info-table td {
+                padding: 0.25em 0.6em;
+                border-top: 1px solid black;
+                border-left: 1px solid black;
+                vertical-align: middle;
+            }
+            .info-table td:first-child {
+                background: var(--color-highlight);
+                color: white;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            .info-table td:last-child {
+                font-family: "IBM Plex Mono", monospace;
+                text-align: right;
+            }
+
+            /* Divider */
+            .divider {
+                border: none;
+                height: 1.5em;
+                border-bottom: 3px solid var(--color-main);
+                margin: 1.25em 0 1em;
+            }
+
+            /* Warning / OK */
+            .warning {
+                border-left: 4px solid var(--color-main);
+                background: rgba(220, 20, 60, 0.06);
+                color: var(--color-main);
+                font-size: 0.82em;
+                padding: 0.5em 0.75em;
+                margin-top: 0.5em;
+            }
+            .ok {
+                border-left: 4px solid var(--color-select);
+                background: rgba(0, 100, 0, 0.05);
+                color: var(--color-select);
+                font-size: 0.82em;
+                padding: 0.5em 0.75em;
+                margin-top: 0.5em;
+            }
+
+            /* Margin toggle */
+            .margin-row {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+                margin-top: 0.5em;
+                font-size: 0.82em;
+            }
+            .margin-row input[type="checkbox"] {
+                width: auto;
+                accent-color: var(--color-main);
+                cursor: pointer;
+                margin: 0;
+            }
+            .margin-row label {
+                color: var(--color-text-highlight);
+                cursor: pointer;
+                margin: 0;
+                font-size: 1em;
+            }
+            .margin-row input[type="number"] {
+                width: 52px;
+                padding: 2px 4px;
+                font-size: 0.95em;
+            }
+            .margin-note {
+                font-family: "IBM Plex Mono", monospace;
+                font-size: 0.75em;
+                color: var(--color-main);
+                margin-top: 0.3em;
+                min-height: 1.2em;
+            }
+
+            /* Diagram */
+            .diagram-wrap {
+                margin-top: 1em;
+            }
+            svg text {
+                font-family: "IBM Plex Mono", monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Reproduction Resolution Calculator</h1>
+        <p class="subtitle">
+            Flat art digitization · sensor → artwork · DPI / DPCM
+        </p>
+
+        <div class="layout">
+            <!-- LEFT: Camera Setup -->
+            <div>
+                <div class="card">
+                    <div class="card-title">Camera &amp; Lens</div>
+
+                    <div class="field">
+                        <label>Sensor preset</label>
+                        <div class="presets" id="sensorPresets"></div>
+                    </div>
+
+                    <div class="field">
+                        <label>Sensor size (W × H)</label>
+                        <div class="field-row">
+                            <input
+                                type="number"
+                                id="sensorW"
+                                class="narrow"
+                                value="43.8"
+                                step="0.1"
+                                min="1"
+                            />
+                            <span class="sep">×</span>
+                            <input
+                                type="number"
+                                id="sensorH"
+                                class="narrow"
+                                value="32.9"
+                                step="0.1"
+                                min="1"
+                            />
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Sensor resolution (W × H)</label>
+                        <div class="field-row">
+                            <input
+                                type="number"
+                                id="pixW"
+                                class="narrow"
+                                value="11648"
+                                step="1"
+                                min="1"
+                            />
+                            <span class="sep">×</span>
+                            <input
+                                type="number"
+                                id="pixH"
+                                class="narrow"
+                                value="8736"
+                                step="1"
+                                min="1"
+                            />
+                            <span class="unit">px</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Focal length</label>
+                        <div class="field-row">
+                            <input
+                                type="number"
+                                id="focal"
+                                value="120"
+                                step="1"
+                                min="1"
+                            />
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Aperture (marked f-number)</label>
+                        <div class="field-row">
+                            <span
+                                class="unit"
+                                style="min-width: 0; margin-right: 2px"
+                                >f /</span
+                            >
+                            <input
+                                type="number"
+                                id="aperture"
+                                value="8"
+                                step="0.5"
+                                min="1"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="card-title-secondary">Artwork size preset</div>
+                    <div class="presets" id="artPresets"></div>
+
+                    <table class="info-table" id="sensorInfo">
+                        <tr>
+                            <td>Sensor ratio</td>
+                            <td id="si-ratio">—</td>
+                        </tr>
+                        <tr>
+                            <td>Pixel pitch</td>
+                            <td id="si-pitch">—</td>
+                        </tr>
+                        <tr>
+                            <td>Sensor diagonal</td>
+                            <td id="si-diag">—</td>
+                        </tr>
+                        <tr>
+                            <td>Min focus dist (1:1)</td>
+                            <td id="si-mfd">—</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RIGHT: Calculator -->
+            <div>
+                <div class="card">
+                    <div class="card-title">Solve for…</div>
+
+                    <div class="mode-tabs">
+                        <button
+                            class="mode-tab active"
+                            onclick="setMode('artwork')"
+                        >
+                            Artwork size<br />→ Distance + DPI
+                        </button>
+                        <button class="mode-tab" onclick="setMode('distance')">
+                            Distance<br />→ Artwork + DPI
+                        </button>
+                        <button class="mode-tab" onclick="setMode('dpi')">
+                            Target DPI<br />→ Artwork + Distance
+                        </button>
+                    </div>
+
+                    <!-- Mode: artwork size given -->
+                    <div class="mode-inputs" id="mode-artwork">
+                        <div class="field">
+                            <label>Artwork size (H × W)</label>
+                            <div class="field-row">
+                                <input
+                                    type="number"
+                                    id="artH"
+                                    class="narrow"
+                                    value="297"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="sep">×</span>
+                                <input
+                                    type="number"
+                                    id="artW"
+                                    class="narrow"
+                                    value="210"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="unit">mm</span>
+                            </div>
+                            <div class="margin-row">
+                                <input
+                                    type="checkbox"
+                                    id="marginEnabled"
+                                    onchange="calculate()"
+                                />
+                                <label for="marginEnabled">+ margin</label>
+                                <input
+                                    type="number"
+                                    id="marginVal"
+                                    value="100"
+                                    min="0"
+                                    step="10"
+                                    onchange="calculate()"
+                                    oninput="calculate()"
+                                />
+                                <span class="unit">mm per side</span>
+                            </div>
+                            <div class="margin-note" id="marginNote"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mode: distance given -->
+                    <div
+                        class="mode-inputs"
+                        id="mode-distance"
+                        style="display: none"
+                    >
+                        <div class="field">
+                            <label>⊙ Sensor plane → artwork</label>
+                            <div class="field-row">
+                                <input
+                                    type="number"
+                                    id="distIn"
+                                    value="1100"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="unit">mm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode: DPI given -->
+                    <div
+                        class="mode-inputs"
+                        id="mode-dpi"
+                        style="display: none"
+                    >
+                        <div class="field">
+                            <label>Target DPI</label>
+                            <div class="field-row">
+                                <input
+                                    type="number"
+                                    id="dpiIn"
+                                    value="600"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="unit">DPI</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Artwork H × W — optional, for max DPI</label>
+                            <div class="field-row">
+                                <input
+                                    type="number"
+                                    id="artH2"
+                                    class="narrow"
+                                    value="297"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="sep">×</span>
+                                <input
+                                    type="number"
+                                    id="artW2"
+                                    class="narrow"
+                                    value="210"
+                                    step="1"
+                                    min="1"
+                                />
+                                <span class="unit">mm</span>
+                            </div>
+                            <div class="margin-row">
+                                <input
+                                    type="checkbox"
+                                    id="marginEnabled2"
+                                    onchange="calculate()"
+                                />
+                                <label for="marginEnabled2">+ margin</label>
+                                <input
+                                    type="number"
+                                    id="marginVal2"
+                                    value="100"
+                                    min="0"
+                                    step="10"
+                                    oninput="calculate()"
+                                />
+                                <span class="unit">mm per side</span>
+                            </div>
+                            <div class="margin-note" id="marginNote2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div class="results-grid" id="resultsGrid">
+                        <div class="result-block highlight">
+                            <div class="result-label">⊙ Sensor → artwork</div>
+                            <div class="result-value" id="r-dist">—</div>
+                            <div class="result-unit">
+                                mm · measure from ⊙ mark
+                            </div>
+                            <div class="result-sub" id="r-dist-cm">—</div>
+                        </div>
+                        <div class="result-block highlight">
+                            <div class="result-label">Artwork covered</div>
+                            <div class="result-value small" id="r-art">—</div>
+                            <div class="result-unit">mm (H × W)</div>
+                            <div class="result-sub" id="r-art-in">—</div>
+                        </div>
+                        <div class="result-block highlight2">
+                            <div class="result-label">DPI</div>
+                            <div class="result-value blue" id="r-dpi">—</div>
+                            <div class="result-unit">dots per inch</div>
+                        </div>
+                        <div class="result-block highlight2">
+                            <div class="result-label">DPCM</div>
+                            <div class="result-value blue" id="r-dpcm">—</div>
+                            <div class="result-unit">dots per cm</div>
+                        </div>
+                        <div class="result-block">
+                            <div class="result-label">Magnification</div>
+                            <div class="result-value green small" id="r-mag">
+                                —
+                            </div>
+                            <div class="result-unit">M (sensor/artwork)</div>
+                        </div>
+                        <div class="result-block">
+                            <div class="result-label">Output resolution</div>
+                            <div class="result-value green small" id="r-res">
+                                —
+                            </div>
+                            <div class="result-unit">effective megapixels</div>
+                        </div>
+                    </div>
+
+                    <div id="r-message"></div>
+
+                    <div class="card-title-secondary">Setup detail</div>
+                    <table class="info-table">
+                        <tr>
+                            <td>Repro ratio</td>
+                            <td id="d-ratio">—</td>
+                        </tr>
+                        <tr>
+                            <td>Lens principal plane → artwork (u)</td>
+                            <td id="d-u">—</td>
+                        </tr>
+                        <tr>
+                            <td>Extension beyond ∞ focus (v − f)</td>
+                            <td id="d-ext">—</td>
+                        </tr>
+                        <tr>
+                            <td>Effective aperture (N_eff)</td>
+                            <td id="d-effap">—</td>
+                        </tr>
+                        <tr>
+                            <td>Depth of field</td>
+                            <td id="d-dof">—</td>
+                        </tr>
+                        <tr>
+                            <td>Pixel pitch on sensor</td>
+                            <td id="d-pitch">—</td>
+                        </tr>
+                        <tr>
+                            <td>Ground sample dist (on art)</td>
+                            <td id="d-gsd">—</td>
+                        </tr>
+                    </table>
+
+                    <div class="diagram-wrap">
+                        <svg
+                            id="diagram"
+                            width="100%"
+                            height="120"
+                            viewBox="0 0 560 120"
+                        ></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // ─── Presets ───────────────────────────────────────────────────────────────
+            const SENSOR_PRESETS = [
+                {
+                    name: "Fujifilm GFX100S",
+                    w: 43.8,
+                    h: 32.9,
+                    pw: 11648,
+                    ph: 8736,
+                    fl: 120,
+                },
+                {
+                    name: "GFX100S Multishot 4×",
+                    w: 43.8,
+                    h: 32.9,
+                    pw: 23296,
+                    ph: 17472,
+                    fl: 120,
+                },
+                {
+                    name: "Nikon D850",
+                    w: 35.9,
+                    h: 23.9,
+                    pw: 8256,
+                    ph: 5504,
+                    fl: 60,
+                },
+                {
+                    name: "Opus Apollo IR",
+                    w: 109.2,
+                    h: 109.2,
+                    pw: 5100,
+                    ph: 5100,
+                    fl: 150,
+                },
+            ];
+
+            const ART_PRESETS = [
+                { name: "A4", w: 210, h: 297 },
+                { name: "A3", w: 297, h: 420 },
+                { name: "A2", w: 420, h: 594 },
+                { name: "A1", w: 594, h: 841 },
+                { name: "A0", w: 841, h: 1189 },
+                { name: "20×30cm", w: 200, h: 300 },
+                { name: "30×40cm", w: 300, h: 400 },
+                { name: "50×70cm", w: 500, h: 700 },
+                { name: '4×5"', w: 102, h: 127 },
+                { name: '8×10"', w: 203, h: 254 },
+            ];
+
+            function buildPresets() {
+                const sp = document.getElementById("sensorPresets");
+                SENSOR_PRESETS.forEach((p) => {
+                    const b = document.createElement("button");
+                    b.className = "preset-btn";
+                    b.textContent = p.name;
+                    b.onclick = () => {
+                        document.getElementById("sensorW").value = p.w;
+                        document.getElementById("sensorH").value = p.h;
+                        document.getElementById("pixW").value = p.pw;
+                        document.getElementById("pixH").value = p.ph;
+                        if (p.fl) document.getElementById("focal").value = p.fl;
+                        calculate();
+                    };
+                    sp.appendChild(b);
+                });
+
+                const ap = document.getElementById("artPresets");
+                ART_PRESETS.forEach((p) => {
+                    const b = document.createElement("button");
+                    b.className = "preset-btn";
+                    b.textContent = p.name;
+                    b.onclick = () => {
+                        document.getElementById("artH").value = p.h;
+                        document.getElementById("artW").value = p.w;
+                        document.getElementById("artH2").value = p.h;
+                        document.getElementById("artW2").value = p.w;
+                        calculate();
+                    };
+                    ap.appendChild(b);
+                });
+            }
+
+            // ─── Mode ──────────────────────────────────────────────────────────────────
+            let currentMode = "artwork";
+
+            function setMode(mode) {
+                currentMode = mode;
+                document.querySelectorAll(".mode-tab").forEach((t, i) => {
+                    t.classList.toggle(
+                        "active",
+                        ["artwork", "distance", "dpi"][i] === mode,
+                    );
+                });
+                document.getElementById("mode-artwork").style.display =
+                    mode === "artwork" ? "" : "none";
+                document.getElementById("mode-distance").style.display =
+                    mode === "distance" ? "" : "none";
+                document.getElementById("mode-dpi").style.display =
+                    mode === "dpi" ? "" : "none";
+                calculate();
+            }
+
+            // ─── Core Math ─────────────────────────────────────────────────────────────
+            // Thin lens: 1/f = 1/v + 1/u  →  u = f(1 + 1/M),  v = f(1 + M)
+            // M = sensor_size / artwork_size  (< 1 for normal repro)
+            // u = object distance (artwork to lens principal plane), mm
+            // v = image distance (lens to sensor), mm
+
+            // Returns effective sensor dims after rotating camera to the orientation that
+            // maximises magnification (= maximises DPI): long sensor axis aligned with long
+            // artwork axis. M-comparison is used instead of AR-comparison because AR alone
+            // fails for landscape artwork that is less wide than the sensor's own ratio.
+            function orient(sW, sH, pixW, pixH, artW, artH) {
+                const mLandscape = Math.min(sW / artW, sH / artH);
+                const mPortrait  = Math.min(sH / artW, sW / artH);
+                const portrait = mPortrait > mLandscape;
+                return {
+                    eSW: portrait ? sH : sW,
+                    eSH: portrait ? sW : sH,
+                    ePW: portrait ? pixH : pixW,
+                    ePH: portrait ? pixW : pixH,
+                    portrait,
+                };
+            }
+
+            function lensFromArtwork(sW, sH, pixW, pixH, f, artW, artH) {
+                const { eSW, eSH, ePW, ePH, portrait } = orient(
+                    sW,
+                    sH,
+                    pixW,
+                    pixH,
+                    artW,
+                    artH,
+                );
+                const M = Math.min(eSW / artW, eSH / artH);
+                const u = f * (1 + 1 / M);
+                const v = f * (1 + M);
+                return {
+                    M,
+                    u,
+                    v,
+                    covW: eSW / M,
+                    covH: eSH / M,
+                    ePW,
+                    ePH,
+                    portrait,
+                };
+            }
+
+            function lensFromDistance(sW, sH, pixW, pixH, f, u) {
+                if (u <= f) return null;
+                const M = f / (u - f);
+                const v = f * (1 + M);
+                // Distance mode: no artwork — show landscape coverage
+                return {
+                    M,
+                    u,
+                    v,
+                    covW: sW / M,
+                    covH: sH / M,
+                    ePW: pixW,
+                    ePH: pixH,
+                    portrait: false,
+                };
+            }
+
+            // Solve for u given total conjugate distance T = u + v (sensor plane → artwork)
+            // From thin lens: u² - T·u + f·T = 0  →  u = (T + √(T²-4fT)) / 2
+            function lensFromTotal(sW, sH, pixW, pixH, f, total) {
+                const disc = total * total - 4 * f * total;
+                if (disc < 0) return null;
+                const u = (total + Math.sqrt(disc)) / 2;
+                return lensFromDistance(sW, sH, pixW, pixH, f, u);
+            }
+
+            function lensFromDPI(
+                sW,
+                sH,
+                pixW,
+                pixH,
+                f,
+                dpi,
+                artW_input,
+                artH_input,
+            ) {
+                const hasArt = artW_input > 0 && artH_input > 0;
+                const { eSW, eSH, ePW, ePH, portrait } = hasArt
+                    ? orient(sW, sH, pixW, pixH, artW_input, artH_input)
+                    : {
+                          eSW: sW,
+                          eSH: sH,
+                          ePW: pixW,
+                          ePH: pixH,
+                          portrait: false,
+                      };
+                let M;
+                if (hasArt) {
+                    // Artwork must fully fit — it is the hard constraint.
+                    // DPI is a result that may be above or below the target.
+                    M = Math.min(eSW / artW_input, eSH / artH_input);
+                } else {
+                    // No artwork given: DPI alone drives the distance.
+                    M = eSW / ((ePW * 25.4) / dpi);
+                }
+                const u = f * (1 + 1 / M);
+                const v = f * (1 + M);
+                return {
+                    M,
+                    u,
+                    v,
+                    covW: eSW / M,
+                    covH: eSH / M,
+                    ePW,
+                    ePH,
+                    portrait,
+                };
+            }
+
+            function dpiFromCoverage(ePW, covW_mm) {
+                return (ePW * 25.4) / covW_mm;
+            }
+
+            // ─── Display ───────────────────────────────────────────────────────────────
+            function fmt(n, dec = 1) {
+                if (!isFinite(n)) return "—";
+                return n.toFixed(dec);
+            }
+            function fmtBig(n) {
+                if (!isFinite(n)) return "—";
+                if (n >= 10) return n.toFixed(0);
+                if (n >= 1) return n.toFixed(1);
+                return n.toFixed(2);
+            }
+
+            function calculate() {
+                const sW =
+                    parseFloat(document.getElementById("sensorW").value) || 36;
+                const sH =
+                    parseFloat(document.getElementById("sensorH").value) || 24;
+                const pixW =
+                    parseFloat(document.getElementById("pixW").value) || 6000;
+                const pixH =
+                    parseFloat(document.getElementById("pixH").value) || 4000;
+                const f =
+                    parseFloat(document.getElementById("focal").value) || 90;
+                const N =
+                    parseFloat(document.getElementById("aperture").value) || 8;
+
+                // Sensor info
+                const sRatio = sW / sH;
+                const pitchMicron = (sW / pixW) * 1000;
+                const sDiag = Math.sqrt(sW * sW + sH * sH);
+                const mfd1to1 = 4 * f; // at 1:1, u = 2f, v = 2f → total = 4f
+
+                document.getElementById("si-ratio").textContent =
+                    fmt(sRatio, 3) + ":1";
+                document.getElementById("si-pitch").textContent =
+                    fmt(pitchMicron, 2) + " µm";
+                document.getElementById("si-diag").textContent =
+                    fmt(sDiag, 1) + " mm";
+                document.getElementById("si-mfd").textContent =
+                    fmt(mfd1to1, 0) + " mm (" + fmt(mfd1to1 / 10, 1) + " cm)";
+
+                let result = null;
+                let artW_disp,
+                    artH_disp,
+                    targetDpi = null;
+
+                if (currentMode === "artwork") {
+                    const aWraw =
+                        parseFloat(document.getElementById("artW").value) ||
+                        210;
+                    const aHraw =
+                        parseFloat(document.getElementById("artH").value) ||
+                        297;
+                    const marginOn =
+                        document.getElementById("marginEnabled").checked;
+                    const marginMm =
+                        parseFloat(
+                            document.getElementById("marginVal").value,
+                        ) || 0;
+                    const aW = marginOn ? aWraw + marginMm * 2 : aWraw;
+                    const aH = marginOn ? aHraw + marginMm * 2 : aHraw;
+                    const noteEl = document.getElementById("marginNote");
+                    if (marginOn && marginMm > 0) {
+                        noteEl.textContent = `effective: ${fmt(aH, 0)} × ${fmt(aW, 0)} mm`;
+                    } else {
+                        noteEl.textContent = "";
+                    }
+                    result = lensFromArtwork(sW, sH, pixW, pixH, f, aW, aH);
+                    artW_disp = result.covW;
+                    artH_disp = result.covH;
+                } else if (currentMode === "distance") {
+                    const dist =
+                        parseFloat(document.getElementById("distIn").value) ||
+                        1100;
+                    result = lensFromTotal(sW, sH, pixW, pixH, f, dist);
+                    if (!result) {
+                        document.getElementById("r-message").innerHTML =
+                            '<div class="warning">Distance must be greater than 4× focal length (min ' +
+                            4 * f +
+                            " mm for this lens)</div>";
+                        return;
+                    }
+                    artW_disp = result.covW;
+                    artH_disp = result.covH;
+                } else {
+                    targetDpi =
+                        parseFloat(document.getElementById("dpiIn").value) ||
+                        600;
+                    const aH2raw =
+                        parseFloat(document.getElementById("artH2").value) || 0;
+                    const aW2raw =
+                        parseFloat(document.getElementById("artW2").value) || 0;
+                    const margin2On =
+                        document.getElementById("marginEnabled2").checked;
+                    const margin2Mm =
+                        parseFloat(
+                            document.getElementById("marginVal2").value,
+                        ) || 0;
+                    const aH_input =
+                        aH2raw && margin2On ? aH2raw + margin2Mm * 2 : aH2raw;
+                    const aW_input =
+                        aW2raw && margin2On ? aW2raw + margin2Mm * 2 : aW2raw;
+                    const note2 = document.getElementById("marginNote2");
+                    if (aH2raw && aW2raw && margin2On && margin2Mm > 0) {
+                        note2.textContent = `effective: ${Math.round(aH_input)} × ${Math.round(aW_input)} mm`;
+                    } else {
+                        note2.textContent = "";
+                    }
+                    result = lensFromDPI(
+                        sW,
+                        sH,
+                        pixW,
+                        pixH,
+                        f,
+                        targetDpi,
+                        aW_input,
+                        aH_input,
+                    );
+                    artW_disp = result.covW;
+                    artH_disp = result.covH;
+                }
+
+                const { M, u, v, covW, covH, ePW, ePH, portrait } = result;
+                const dpi = dpiFromCoverage(ePW, covW);
+                const dpcm = dpi / 2.54;
+                const effMpx = (ePW * ePH) / 1e6;
+
+                // Extension needed (beyond infinity focus, where v = f)
+                const ext = v - f;
+                // Effective aperture: N_eff = N × (1 + M)
+                const effAp = N * (1 + M);
+                // DoF = 2 × CoC × N_eff / M²  (standard macro DoF formula)
+                // CoC = pixel pitch × 2 (resolves to 2-pixel pairs — appropriate for archival repro)
+                const eSW = portrait ? sH : sW;
+                const pitchMm = eSW / ePW;
+                const CoC = pitchMm * 2;
+                const DoF = (2 * CoC * effAp) / (M * M);
+                // Ground sample distance on artwork
+                const gsd = pitchMm / M;
+
+                // Update results
+                const total = u + v;
+                document.getElementById("r-dist").textContent = fmt(total, 0);
+                document.getElementById("r-dist-cm").textContent =
+                    fmt(total / 10, 1) +
+                    " cm  |  " +
+                    fmt(total / 25.4, 2) +
+                    '"';
+                document.getElementById("r-art").textContent =
+                    fmt(covH, 1) + " × " + fmt(covW, 1);
+                document.getElementById("r-art-in").textContent =
+                    fmt(covH / 25.4, 2) +
+                    '" × ' +
+                    fmt(covW / 25.4, 2) +
+                    '"  · ' +
+                    (portrait ? "↕ portrait" : "↔ landscape");
+                document.getElementById("r-dpi").textContent = fmtBig(dpi);
+                document.getElementById("r-dpcm").textContent = fmtBig(dpcm);
+                document.getElementById("r-mag").textContent =
+                    "1:" + fmt(1 / M, 2);
+                document.getElementById("r-res").textContent =
+                    fmt(effMpx, 1) + " MP";
+
+                document.getElementById("d-ratio").textContent =
+                    "1:" + fmt(1 / M, 2) + "  (M = " + fmt(M, 4) + ")";
+                document.getElementById("d-u").textContent =
+                    fmt(u, 0) + " mm  (" + fmt(u / 10, 1) + " cm)";
+                document.getElementById("d-ext").textContent =
+                    fmt(ext, 2) + " mm";
+                document.getElementById("d-effap").textContent =
+                    "f/" +
+                    fmt(effAp, 1) +
+                    "  (marked f/" +
+                    fmt(N, 1) +
+                    " × (1 + " +
+                    fmt(M, 3) +
+                    "))";
+                document.getElementById("d-dof").textContent =
+                    fmt(DoF, 3) + " mm  (CoC = " + fmt(CoC * 1000, 2) + " µm)";
+                document.getElementById("d-pitch").textContent =
+                    fmt(pitchMm * 1000, 2) + " µm";
+                document.getElementById("d-gsd").textContent =
+                    fmt(gsd * 1000, 2) + " µm/px  (" + fmt(gsd, 4) + " mm/px)";
+
+                // Warnings / OK
+                let msg = "";
+                if (targetDpi !== null && dpi < targetDpi - 0.5)
+                    msg =
+                        '<div class="warning">Actual DPI (' +
+                        fmtBig(dpi) +
+                        ") is below target (" +
+                        fmtBig(targetDpi) +
+                        ") — artwork is too large for this sensor/lens at that DPI. Increase sensor resolution or reduce artwork size.</div>";
+                else if (dpi < 300)
+                    msg =
+                        '<div class="warning">DPI below 300 — low resolution for reproduction quality.</div>';
+                else if (dpi >= 600)
+                    msg =
+                        '<div class="ok">DPI ≥ 600 — excellent for archival scanning quality.</div>';
+                else
+                    msg =
+                        '<div class="ok">DPI 300–600 — good reproduction quality.</div>';
+                document.getElementById("r-message").innerHTML = msg;
+
+                drawDiagram(u, v, f, sW, covW);
+            }
+
+            // ─── Diagram ───────────────────────────────────────────────────────────────
+            function drawDiagram(u, v, f, sW, covW) {
+                const svg = document.getElementById("diagram");
+                const W = svg.viewBox.baseVal.width;
+                const H = svg.viewBox.baseVal.height;
+                const PAD = 30;
+                const totalMm = u + v;
+                const scale = (W - PAD * 2) / totalMm;
+
+                // Positions in SVG coords (left = artwork, right = camera)
+                const xArt = PAD;
+                const xLens = PAD + u * scale;
+                const xCam = PAD + (u + v) * scale;
+                const mid = H / 2;
+
+                // Heights
+                const artH_svg = Math.min(50, (covW / 500) * 50 + 10);
+                const sensH_svg = Math.min(20, (sW / 80) * 20 + 5);
+
+                let s = "";
+                // Background
+                s += `<rect width="${W}" height="${H}" fill="#fefefe"/>`;
+                s += `<rect width="${W}" height="${H}" fill="none" stroke="#ccc" stroke-width="1"/>`;
+
+                // Light path (top ray and bottom ray)
+                const topArt = mid - artH_svg;
+                const botArt = mid + artH_svg;
+                const topSens = mid - sensH_svg;
+                const botSens = mid + sensH_svg;
+
+                s += `<line x1="${xArt}" y1="${topArt}" x2="${xLens}" y2="${mid}" stroke="crimson" stroke-width="1" stroke-opacity="0.25"/>`;
+                s += `<line x1="${xArt}" y1="${botArt}" x2="${xLens}" y2="${mid}" stroke="crimson" stroke-width="1" stroke-opacity="0.25"/>`;
+                s += `<line x1="${xLens}" y1="${mid}" x2="${xCam}" y2="${topSens}" stroke="crimson" stroke-width="1" stroke-opacity="0.25"/>`;
+                s += `<line x1="${xLens}" y1="${mid}" x2="${xCam}" y2="${botSens}" stroke="crimson" stroke-width="1" stroke-opacity="0.25"/>`;
+
+                // Optical axis
+                s += `<line x1="${xArt}" y1="${mid}" x2="${xCam}" y2="${mid}" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>`;
+
+                // Artwork
+                s += `<rect x="${xArt - 5}" y="${topArt}" width="5" height="${artH_svg * 2}" fill="crimson"/>`;
+                s += `<text x="${xArt - 8}" y="${mid + 4}" fill="crimson" font-size="9" text-anchor="end">ART</text>`;
+
+                // Lens
+                s += `<line x1="${xLens}" y1="${mid - 28}" x2="${xLens}" y2="${mid + 28}" stroke="royalblue" stroke-width="2"/>`;
+                s += `<polygon points="${xLens - 4},${mid - 22} ${xLens + 4},${mid - 22} ${xLens},${mid - 28}" fill="royalblue"/>`;
+                s += `<polygon points="${xLens - 4},${mid + 22} ${xLens + 4},${mid + 22} ${xLens},${mid + 28}" fill="royalblue"/>`;
+                s += `<text x="${xLens}" y="${mid + 42}" fill="royalblue" font-size="9" text-anchor="middle">LENS f=${f}mm</text>`;
+
+                // Sensor / camera
+                s += `<rect x="${xCam}" y="${topSens}" width="5" height="${sensH_svg * 2}" fill="darkgreen"/>`;
+                s += `<text x="${xCam + 8}" y="${mid + 4}" fill="darkgreen" font-size="9">CAM</text>`;
+
+                // Dimension lines
+                const dimY = mid + 55;
+                // u arrow
+                s += `<line x1="${xArt}" y1="${dimY}" x2="${xLens}" y2="${dimY}" stroke="#999" stroke-width="1"/>`;
+                s += `<polygon points="${xArt},${dimY - 3} ${xArt + 6},${dimY} ${xArt},${dimY + 3}" fill="#999"/>`;
+                s += `<polygon points="${xLens},${dimY - 3} ${xLens - 6},${dimY} ${xLens},${dimY + 3}" fill="#999"/>`;
+                const uLabelX = (xArt + xLens) / 2;
+                s += `<text x="${uLabelX}" y="${dimY - 4}" fill="#555" font-size="9" text-anchor="middle">u = ${Math.round(u)} mm</text>`;
+
+                // v arrow
+                s += `<line x1="${xLens}" y1="${dimY}" x2="${xCam}" y2="${dimY}" stroke="#999" stroke-width="1"/>`;
+                s += `<polygon points="${xLens},${dimY - 3} ${xLens + 6},${dimY} ${xLens},${dimY + 3}" fill="#999"/>`;
+                s += `<polygon points="${xCam},${dimY - 3} ${xCam - 6},${dimY} ${xCam},${dimY + 3}" fill="#999"/>`;
+                const vLabelX = (xLens + xCam) / 2;
+                s += `<text x="${vLabelX}" y="${dimY - 4}" fill="#555" font-size="9" text-anchor="middle">v = ${Math.round(v)} mm</text>`;
+
+                svg.innerHTML = s;
+            }
+
+            // ─── Init ──────────────────────────────────────────────────────────────────
+            buildPresets();
+
+            document
+                .querySelectorAll("input")
+                .forEach((el) => el.addEventListener("input", calculate));
+
+            calculate();
+        </script>
+    </body>
+</html>
