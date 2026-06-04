@@ -463,6 +463,27 @@
                             <td id="si-mfd">—</td>
                         </tr>
                     </table>
+
+                    <div class="card-title-secondary" style="margin-top:1.5em">Lens calibration</div>
+                    <p style="font-size:0.78em;color:var(--color-text-highlight);margin-bottom:0.75em;line-height:1.4">
+                        Photograph a ruler or reference target at a known distance. Enter what you measured to find your lens's effective focal length — corrects for focus breathing and principal-plane offset.
+                    </p>
+                    <div class="field">
+                        <label>Measured ⊙ sensor → subject distance</label>
+                        <div class="field-row">
+                            <input type="number" id="calDist" class="narrow" step="1" min="1" placeholder="e.g. 1100" oninput="computeCalFL()"/>
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Measured frame coverage — width (landscape shot)</label>
+                        <div class="field-row">
+                            <input type="number" id="calCovW" class="narrow" step="1" min="1" placeholder="e.g. 285" oninput="computeCalFL()"/>
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                    <div id="calResult" class="margin-note" style="min-height:1.4em;font-size:0.82em"></div>
+                    <button id="calApplyBtn" class="preset-btn" style="margin-top:0.5em;display:none" onclick="applyCalFL()">← Apply as focal length</button>
                 </div>
             </div>
 
@@ -721,6 +742,14 @@
                     pw: 23296,
                     ph: 17472,
                     fl: 120,
+                },
+                {
+                    name: "Panasonic S1R",
+                    w: 35.6,
+                    h: 23.8,
+                    pw: 8368,
+                    ph: 5584,
+                    fl: 60,
                 },
                 {
                     name: "Nikon D850",
@@ -1210,6 +1239,44 @@
                 s += `<text x="${vLabelX}" y="${dimY - 4}" fill="#555" font-size="9" text-anchor="middle">v = ${Math.round(v)} mm</text>`;
 
                 svg.innerHTML = s;
+            }
+
+            // ─── Lens calibration ──────────────────────────────────────────────────────
+            // Given a measured total distance T (sensor→artwork) and measured frame
+            // coverage width covW, back-solve for the effective focal length.
+            // Thin lens: T = u + v = f(2 + M + 1/M)  →  f_eff = T / (2 + M + 1/M)
+            // where M = sensorW / covW.  This absorbs focus breathing + principal-plane offset.
+            let _calFl = null;
+
+            function computeCalFL() {
+                const T = parseFloat(document.getElementById("calDist").value);
+                const covW = parseFloat(document.getElementById("calCovW").value);
+                const sW = parseFloat(document.getElementById("sensorW").value) || 36;
+                const el = document.getElementById("calResult");
+                const btn = document.getElementById("calApplyBtn");
+
+                if (!T || !covW || T <= 0 || covW <= 0) {
+                    el.textContent = "";
+                    btn.style.display = "none";
+                    _calFl = null;
+                    return;
+                }
+
+                const M = sW / covW;
+                const fEff = T / (2 + M + 1 / M);
+                _calFl = fEff;
+
+                const nominalF = parseFloat(document.getElementById("focal").value) || 0;
+                const diff = fEff - nominalF;
+                const diffStr = (diff >= 0 ? "+" : "") + diff.toFixed(1);
+                el.textContent = `Effective FL: ${fEff.toFixed(1)} mm  (${diffStr} mm vs nominal ${nominalF} mm)`;
+                btn.style.display = "";
+            }
+
+            function applyCalFL() {
+                if (_calFl == null) return;
+                document.getElementById("focal").value = _calFl.toFixed(2);
+                calculate();
             }
 
             // ─── Init ──────────────────────────────────────────────────────────────────
