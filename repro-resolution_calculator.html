@@ -493,26 +493,68 @@
                         </tr>
                     </table>
 
-                    <div class="card-title-secondary" style="margin-top:1.5em">Lens calibration</div>
-                    <p style="font-size:0.78em;color:var(--color-text-highlight);margin-bottom:0.75em;line-height:1.4">
-                        Photograph a ruler or reference target at a known distance. Enter what you measured to find your lens's effective focal length — corrects for focus breathing and principal-plane offset.
+                    <div class="card-title-secondary" style="margin-top: 1.5em">
+                        Lens calibration
+                    </div>
+                    <p
+                        style="
+                            font-size: 0.78em;
+                            color: var(--color-text-highlight);
+                            margin-bottom: 0.75em;
+                            line-height: 1.4;
+                        "
+                    >
+                        Photograph a ruler or reference target at a known
+                        distance. Enter what you measured to find your lens's
+                        effective focal length — corrects for focus breathing
+                        and principal-plane offset.
                     </p>
                     <div class="field">
                         <label>Measured ⊙ sensor → subject distance</label>
                         <div class="field-row">
-                            <input type="number" id="calDist" class="narrow" step="1" min="1" placeholder="e.g. 1100" oninput="computeCalFL()"/>
+                            <input
+                                type="number"
+                                id="calDist"
+                                class="narrow"
+                                step="1"
+                                min="1"
+                                placeholder="e.g. 1100"
+                                oninput="computeCalFL()"
+                            />
                             <span class="unit">mm</span>
                         </div>
                     </div>
                     <div class="field">
-                        <label>Measured frame coverage — width (landscape shot)</label>
+                        <label
+                            >Measured frame coverage — width (landscape
+                            shot)</label
+                        >
                         <div class="field-row">
-                            <input type="number" id="calCovW" class="narrow" step="1" min="1" placeholder="e.g. 285" oninput="computeCalFL()"/>
+                            <input
+                                type="number"
+                                id="calCovW"
+                                class="narrow"
+                                step="1"
+                                min="1"
+                                placeholder="e.g. 285"
+                                oninput="computeCalFL()"
+                            />
                             <span class="unit">mm</span>
                         </div>
                     </div>
-                    <div id="calResult" class="margin-note" style="min-height:1.4em;font-size:0.82em"></div>
-                    <button id="calApplyBtn" class="preset-btn" style="margin-top:0.5em;display:none" onclick="applyCalFL()">← Apply as focal length</button>
+                    <div
+                        id="calResult"
+                        class="margin-note"
+                        style="min-height: 1.4em; font-size: 0.82em"
+                    ></div>
+                    <button
+                        id="calApplyBtn"
+                        class="preset-btn"
+                        style="margin-top: 0.5em; display: none"
+                        onclick="applyCalFL()"
+                    >
+                        ← Apply as focal length
+                    </button>
                 </div>
             </div>
 
@@ -760,12 +802,16 @@
                     Kunstmuseum Basel<br />
                     St. Alban-Graben 16–20<br />
                     CH-4010 Basel<br />
-                    <a href="https://kunstmuseumbasel.ch" target="_blank">kunstmuseumbasel.ch</a>
+                    <a href="https://kunstmuseumbasel.ch" target="_blank"
+                        >kunstmuseumbasel.ch</a
+                    >
                 </div>
                 <div>
                     Max Ehrengruber<br />
                     Scientific Photographer, Conservation<br />
-                    <a href="mailto:max.ehrengruber@bs.ch">max.ehrengruber@bs.ch</a>
+                    <a href="mailto:max.ehrengruber@bs.ch"
+                        >max.ehrengruber@bs.ch</a
+                    >
                 </div>
                 <div>
                     Typefaces<br />
@@ -814,8 +860,8 @@
                     name: "Opus Apollo IR",
                     w: 109.2,
                     h: 109.2,
-                    pw: 5100,
-                    ph: 5100,
+                    pw: 5176,
+                    ph: 5176,
                     fl: 150,
                 },
                 {
@@ -906,7 +952,7 @@
             // fails for landscape artwork that is less wide than the sensor's own ratio.
             function orient(sW, sH, pixW, pixH, artW, artH) {
                 const mLandscape = Math.min(sW / artW, sH / artH);
-                const mPortrait  = Math.min(sH / artW, sW / artH);
+                const mPortrait = Math.min(sH / artW, sW / artH);
                 const portrait = mPortrait > mLandscape;
                 return {
                     eSW: portrait ? sH : sW,
@@ -1301,8 +1347,11 @@
 
             function computeCalFL() {
                 const T = parseFloat(document.getElementById("calDist").value);
-                const covW = parseFloat(document.getElementById("calCovW").value);
-                const sW = parseFloat(document.getElementById("sensorW").value) || 36;
+                const covW = parseFloat(
+                    document.getElementById("calCovW").value,
+                );
+                const sW =
+                    parseFloat(document.getElementById("sensorW").value) || 36;
                 const el = document.getElementById("calResult");
                 const btn = document.getElementById("calApplyBtn");
 
@@ -1317,7 +1366,8 @@
                 const fEff = T / (2 + M + 1 / M);
                 _calFl = fEff;
 
-                const nominalF = parseFloat(document.getElementById("focal").value) || 0;
+                const nominalF =
+                    parseFloat(document.getElementById("focal").value) || 0;
                 const diff = fEff - nominalF;
                 const diffStr = (diff >= 0 ? "+" : "") + diff.toFixed(1);
                 el.textContent = `Effective FL: ${fEff.toFixed(1)} mm  (${diffStr} mm vs nominal ${nominalF} mm)`;
