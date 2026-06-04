@@ -343,6 +343,35 @@
             svg text {
                 font-family: "IBM Plex Mono", monospace;
             }
+
+            /* Impressum */
+            .impressum {
+                margin-top: 4em;
+                max-width: 960px;
+                border-top: 1px solid #ccc;
+                padding-top: 1.25em;
+                font-size: 0.78em;
+                color: var(--color-text-highlight);
+            }
+            .impressum-meta {
+                font-family: "IBM Plex Mono", monospace;
+                margin-bottom: 0.75em;
+            }
+            .impressum-cols {
+                display: flex;
+                gap: 3em;
+                flex-wrap: wrap;
+                line-height: 1.6;
+            }
+            .impressum a {
+                color: inherit;
+                text-decoration: none;
+                border-bottom: 1px solid #aaa;
+            }
+            .impressum a:hover {
+                color: var(--color-main);
+                border-color: var(--color-main);
+            }
         </style>
     </head>
     <body>
@@ -723,6 +752,28 @@
                 </div>
             </div>
         </div>
+
+        <footer class="impressum">
+            <div class="impressum-meta">2026-06-04</div>
+            <div class="impressum-cols">
+                <div>
+                    Kunstmuseum Basel<br />
+                    St. Alban-Graben 16–20<br />
+                    CH-4010 Basel<br />
+                    <a href="https://kunstmuseumbasel.ch" target="_blank">kunstmuseumbasel.ch</a>
+                </div>
+                <div>
+                    Max Ehrengruber<br />
+                    Scientific Photographer, Conservation<br />
+                    <a href="mailto:max.ehrengruber@bs.ch">max.ehrengruber@bs.ch</a>
+                </div>
+                <div>
+                    Typefaces<br />
+                    IBM Plex Sans<br />
+                    IBM Plex Mono
+                </div>
+            </div>
+        </footer>
 
         <script>
             // ─── Presets ───────────────────────────────────────────────────────────────
