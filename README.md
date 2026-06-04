@@ -28,8 +28,3 @@ Thin-lens formula: `1/f = 1/u + 1/v`, where `u` is the object distance (lens pri
 - **Depth of field** `= 2 × CoC × N_eff / M²` (CoC = 2 × pixel pitch)
 
 Camera orientation (portrait vs. landscape) is chosen automatically to maximise magnification for the given artwork.
-
-## Credits
-
-Kunstmuseum Basel · Max Ehrengruber, Scientific Photographer, Conservation  
-Typefaces: IBM Plex Sans, IBM Plex Mono
