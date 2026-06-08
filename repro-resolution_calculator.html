@@ -285,7 +285,7 @@
                 margin: 1.25em 0 1em;
             }
 
-            /* Warning / OK */
+            /* Warning / OK / Info */
             .warning {
                 border-left: 4px solid var(--color-main);
                 background: rgba(220, 20, 60, 0.06);
@@ -298,6 +298,14 @@
                 border-left: 4px solid var(--color-select);
                 background: rgba(0, 100, 0, 0.05);
                 color: var(--color-select);
+                font-size: 0.82em;
+                padding: 0.5em 0.75em;
+                margin-top: 0.5em;
+            }
+            .info {
+                border-left: 4px solid var(--color-highlight);
+                background: rgba(65, 105, 225, 0.06);
+                color: var(--color-highlight);
                 font-size: 0.82em;
                 padding: 0.5em 0.75em;
                 margin-top: 0.5em;
@@ -842,8 +850,8 @@
                 },
                 {
                     name: "Panasonic S1R",
-                    w: 35.6,
-                    h: 23.8,
+                    w: 36,
+                    h: 24,
                     pw: 8368,
                     ph: 5584,
                     fl: 60,
@@ -858,11 +866,12 @@
                 },
                 {
                     name: "Opus Apollo IR",
-                    w: 109.2,
-                    h: 109.2,
+                    w: 116,
+                    h: 116,
                     pw: 5176,
                     ph: 5176,
                     fl: 150,
+                    maxDist: 2200, // mm — hardware column height limit (~90 DPI at max distance)
                 },
                 {
                     name: "i2s Suprascan A1",
@@ -871,6 +880,7 @@
                     pw: 10075,
                     ph: 10075,
                     fl: 80,
+                    maxDist: 792, // mm — 400 DPI at 643mm coverage (82.7mm sensor, f=80mm)
                 },
             ];
 
@@ -887,6 +897,8 @@
                 { name: '8×10"', w: 203, h: 254 },
             ];
 
+            let activePreset = null;
+
             function buildPresets() {
                 const sp = document.getElementById("sensorPresets");
                 SENSOR_PRESETS.forEach((p) => {
@@ -894,6 +906,7 @@
                     b.className = "preset-btn";
                     b.textContent = p.name;
                     b.onclick = () => {
+                        activePreset = p;
                         document.getElementById("sensorW").value = p.w;
                         document.getElementById("sensorH").value = p.h;
                         document.getElementById("pixW").value = p.pw;
@@ -1262,6 +1275,17 @@
                 else
                     msg =
                         '<div class="ok">DPI 300–600 — good reproduction quality.</div>';
+
+                if (activePreset?.maxDist && total > activePreset.maxDist)
+                    msg +=
+                        '<div class="info">Distance ' +
+                        fmt(total, 0) +
+                        " mm exceeds the " +
+                        activePreset.name +
+                        " hardware limit (" +
+                        activePreset.maxDist +
+                        " mm). Values shown are theoretical.</div>";
+
                 document.getElementById("r-message").innerHTML = msg;
 
                 drawDiagram(u, v, f, sW, covW);
